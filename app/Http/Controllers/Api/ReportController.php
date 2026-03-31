@@ -27,14 +27,13 @@ class ReportController extends Controller
             'involved_persons'  => 'nullable|string',
         ]);
 
-        $isAnonymous  = !$request->user();
+        $user = auth('sanctum')->user();
+        $isAnonymous = !$user;
         $anonymousData = null;
 
         if ($isAnonymous) {
             $anonymousData = $this->reportService->createAnonymousUser();
             $user          = $anonymousData['user'];
-        } else {
-            $user = $request->user();
         }
 
         $report = Report::create([
