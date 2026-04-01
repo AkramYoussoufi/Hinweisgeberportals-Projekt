@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\AdminController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -22,4 +23,10 @@ Route::prefix('reports')->group(function () {
         Route::get('/',                        [ReportController::class, 'index']);
         Route::get('/{referenceNumber}',       [ReportController::class, 'show']);
     });
+});
+
+Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/reports',                          [AdminController::class, 'index']);
+    Route::get('/reports/{referenceNumber}',        [AdminController::class, 'show']);
+    Route::patch('/reports/{referenceNumber}/status', [AdminController::class, 'updateStatus']);
 });
