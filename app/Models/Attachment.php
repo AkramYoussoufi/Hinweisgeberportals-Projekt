@@ -22,6 +22,7 @@ class Attachment extends Model
         'stored_filename',
     ];
 
+
     protected function casts(): array
     {
         return [

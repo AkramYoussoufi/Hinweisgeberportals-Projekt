@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Report extends Model
 {
@@ -27,6 +28,18 @@ class Report extends Model
     protected $hidden = [
         'user_id',
     ];
+
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Report $report) {
+            foreach ($report->attachments as $attachment) {
+                $path = 'attachments/' . $report->id . '/' . $attachment->stored_filename;
+                Storage::disk('local')->delete($path);
+            }
+            Storage::disk('local')->deleteDirectory('attachments/' . $report->id);
+        });
+    }
 
     protected function casts(): array
     {
