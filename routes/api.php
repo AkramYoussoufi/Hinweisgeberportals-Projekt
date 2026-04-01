@@ -17,4 +17,9 @@ Route::prefix('auth')->group(function () {
 
 Route::prefix('reports')->group(function () {
     Route::post('/', [ReportController::class, 'store']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/',                        [ReportController::class, 'index']);
+        Route::get('/{referenceNumber}',       [ReportController::class, 'show']);
+    });
 });

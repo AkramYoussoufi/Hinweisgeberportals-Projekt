@@ -74,4 +74,52 @@ class ReportController extends Controller
             'reference_number' => $report->reference_number,
         ], 201);
     }
+
+    public function index(Request $request)
+    {
+        $reports = Report::where('user_id', $request->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($report) {
+                return [
+                    'reference_number'  => $report->reference_number,
+                    'category'          => $report->category,
+                    'status'            => $report->status,
+                    'subject'           => $report->subject,
+                    'incident_date'     => $report->incident_date,
+                    'incident_location' => $report->incident_location,
+                    'created_at'        => $report->created_at,
+                ];
+            });
+
+        return response()->json([
+            'reports' => $reports,
+        ], 200);
+    }
+
+    public function show(Request $request, string $referenceNumber)
+    {
+        $report = Report::where('reference_number', $referenceNumber)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (!$report) {
+            return response()->json([
+                'message' => 'Report not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'reference_number'  => $report->reference_number,
+            'category'          => $report->category,
+            'status'            => $report->status,
+            'subject'           => $report->subject,
+            'description'       => $report->description,
+            'incident_date'     => $report->incident_date,
+            'incident_location' => $report->incident_location,
+            'involved_persons'  => $report->involved_persons,
+            'is_anonymous'      => $report->is_anonymous,
+            'created_at'        => $report->created_at,
+        ], 200);
+    }
 }
