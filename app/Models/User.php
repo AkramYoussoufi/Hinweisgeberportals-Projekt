@@ -41,6 +41,20 @@ class User extends Authenticatable
         ];
     }
 
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
+
+    public function routeNotificationForMail(): string
+    {
+        try {
+            return $this->email ?? '';
+        } catch (\Exception $e) {
+            return '';
+        }
+    }
+
     public function reports()
     {
         return $this->hasMany(Report::class);
