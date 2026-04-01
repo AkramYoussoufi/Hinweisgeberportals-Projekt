@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
+use App\Notifications\NewReportNotification;
+use Illuminate\Support\Facades\Notification;
 
 class ReportController extends Controller
 {
@@ -56,6 +58,15 @@ class ReportController extends Controller
             newValue: ['reference_number' => $report->reference_number, 'category' => $report->category],
             ip: $request->ip()
         );
+
+        try {
+            $admins = \App\Models\User::whereIn('role', ['admin', 'superadmin'])
+                ->whereNotNull('email')
+                ->get();
+            \Illuminate\Support\Facades\Notification::send($admins, new NewReportNotification($report));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send new report notification: ' . $e->getMessage());
+        }
 
         if ($isAnonymous) {
             return response()->json([

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
+use App\Notifications\StatusChangedNotification;
 
 class AdminController extends Controller
 {
@@ -58,10 +59,10 @@ class AdminController extends Controller
 
         $this->reportService->logAction(
             reportId: $report->id,
-            actorId:  $request->user()->id,
-            action:   'report_viewed',
+            actorId: $request->user()->id,
+            action: 'report_viewed',
             newValue: ['reference_number' => $report->reference_number],
-            ip:       $request->ip()
+            ip: $request->ip()
         );
 
         return response()->json([
@@ -100,12 +101,21 @@ class AdminController extends Controller
 
         $this->reportService->logAction(
             reportId: $report->id,
-            actorId:  $request->user()->id,
-            action:   'status_changed',
+            actorId: $request->user()->id,
+            action: 'status_changed',
             oldValue: ['status' => $oldStatus],
             newValue: ['status' => $validated['status']],
-            ip:       $request->ip()
+            ip: $request->ip()
         );
+
+        try {
+            $whistleblower = $report->user;
+            if ($whistleblower && !$whistleblower->is_anonymous && $whistleblower->email) {
+                $whistleblower->notify(new StatusChangedNotification($report, $oldStatus, $validated['status']));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send status notification: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message'          => 'Status updated successfully',

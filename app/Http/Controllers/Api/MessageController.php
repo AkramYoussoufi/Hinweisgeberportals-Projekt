@@ -8,6 +8,8 @@ use App\Models\Report;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 
+use App\Notifications\NewMessageNotification;
+
 class MessageController extends Controller
 {
     protected ReportService $reportService;
@@ -86,6 +88,16 @@ class MessageController extends Controller
             ip: $request->ip()
         );
 
+
+        try {
+            $whistleblower = $report->user;
+            if ($whistleblower && !$whistleblower->is_anonymous && $whistleblower->email) {
+                $whistleblower->notify(new NewMessageNotification($report));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send message notification: ' . $e->getMessage());
+        }
+
         return response()->json([
             'message'    => 'Message sent successfully',
             'id'         => $message->id,
@@ -157,6 +169,15 @@ class MessageController extends Controller
             newValue: ['sender_role' => 'admin'],
             ip: $request->ip()
         );
+
+        try {
+            $whistleblower = $report->user;
+            if ($whistleblower && !$whistleblower->is_anonymous && $whistleblower->email) {
+                $whistleblower->notify(new NewMessageNotification($report));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send message notification: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message'    => 'Message sent successfully',
