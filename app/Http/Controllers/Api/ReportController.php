@@ -36,9 +36,7 @@ class ReportController extends Controller
         $anonymousData = null;
 
         if ($isAnonymous) {
-            if (!$this->verifyHcaptcha($request->input('hcaptcha_token'), $request->ip())) {
-                return response()->json(['message' => 'Captcha verification failed. Please try again.'], 422);
-            }
+            $this->verifyHcaptcha($request->input('hcaptcha_token'), $request->ip());
             $anonymousData = $this->reportService->createAnonymousUser();
             $user          = $anonymousData['user'];
         }
