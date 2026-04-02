@@ -60,19 +60,21 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 // EMAIL VERIFICATION PART INTERNAL IMPLEMENTATION
 
 Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
-    $user = \App\Models\User::findOrFail($id);
+    $frontendUrl = rtrim(env('FRONTEND_URL', config('app.url')), '/');
 
-    if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-        return response()->json(['message' => 'Invalid verification link.'], 403);
+    $user = \App\Models\User::find($id);
+
+    if (!$user || !hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        return redirect($frontendUrl . '/verify-email.html?status=error');
     }
 
     if ($user->hasVerifiedEmail()) {
-        return response()->json(['message' => 'Email already verified.'], 200);
+        return redirect($frontendUrl . '/verify-email.html?status=already');
     }
 
     $user->markEmailAsVerified();
 
-    return response()->json(['message' => 'Email verified successfully. You can now log in.'], 200);
+    return redirect($frontendUrl . '/verify-email.html?status=success');
 })->middleware('signed')->name('verification.verify');
 
 Route::post('/email/resend', function (Request $request) {
