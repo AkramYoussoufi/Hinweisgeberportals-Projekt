@@ -7,6 +7,7 @@ use App\Models\Report;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use App\Notifications\NewReportNotification;
 use Illuminate\Support\Facades\Notification;
 
@@ -67,19 +68,22 @@ class ReportController extends Controller
             $admins = \App\Models\User::whereIn('role', ['admin', 'superadmin'])
                 ->whereNotNull('email')
                 ->get();
-            \Illuminate\Support\Facades\Notification::send($admins, new NewReportNotification($report));
+            Notification::send($admins, new NewReportNotification($report));
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send new report notification: ' . $e->getMessage());
+            Log::error('Failed to send new report notification: ' . $e->getMessage());
         }
 
         if ($isAnonymous) {
+            $sanctumToken = $user->createToken('auth_token')->plainTextToken;
+
             return response()->json([
                 'message'          => 'Report submitted successfully',
                 'reference_number' => $report->reference_number,
                 'anonymous_access' => [
-                    'token' => $anonymousData['token'],
-                    'pin'   => $anonymousData['pin'],
-                    'warning' => 'Save these credentials. They will never be shown again.',
+                    'token'      => $anonymousData['token'],
+                    'pin'        => $anonymousData['pin'],
+                    'auth_token' => $sanctumToken,
+                    'warning'    => 'Save these credentials. They will never be shown again.',
                 ],
             ], 201);
         }
@@ -94,13 +98,18 @@ class ReportController extends Controller
     {
         if (!$token) return false;
 
-        $response = Http::asForm()->post('https://hcaptcha.com/siteverify', [
-            'secret'   => env('HCAPTCHA_SECRET'),
-            'response' => $token,
-            'remoteip' => $ip,
-        ]);
+        try {
+            $response = Http::timeout(10)->asForm()->post('https://hcaptcha.com/siteverify', [
+                'secret'   => env('HCAPTCHA_SECRET'),
+                'response' => $token,
+                'remoteip' => $ip,
+            ]);
 
-        return $response->json('success') === true;
+            return $response->json('success') === true;
+        } catch (\Exception $e) {
+            Log::error('hCaptcha verification failed: ' . $e->getMessage());
+            return false;
+        }
     }
 
     public function index(Request $request)
