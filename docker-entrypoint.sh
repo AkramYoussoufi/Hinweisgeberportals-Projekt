@@ -1,12 +1,18 @@
 #!/bin/bash
 set -e
 
-# Run migrations
+# wait for database
+echo "Waiting for database..."
+until php artisan migrate:status > /dev/null 2>&1; do
+  sleep 3
+done
+
+echo "Database ready"
+
+# run migrations
 php artisan migrate --force
 
-# Clear and cache config
 php artisan config:cache
 php artisan route:cache
 
-# Start Apache
 apache2-foreground
