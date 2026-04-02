@@ -21,13 +21,18 @@ class ResetPasswordNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        $email = $notifiable->email ?? '';
+        $frontendUrl = env('FRONTEND_URL', 'http://127.0.0.1:5500');
+        $resetUrl = $frontendUrl . '/reset-password.html'
+            . '?token=' . urlencode($this->token)
+            . '&email=' . urlencode($email);
+
         return (new MailMessage)
-            ->subject('Password Reset — Hinweisgeberporal')
+            ->subject('Password Reset — Hinweisgeberportal')
             ->greeting('Hello,')
             ->line('You are receiving this email because we received a password reset request for your account.')
-            ->line('Your password reset token is:')
-            ->line('**' . $this->token . '**')
-            ->line('This token expires in 60 minutes.')
+            ->action('Reset Password', $resetUrl)
+            ->line('This link expires in 60 minutes.')
             ->line('If you did not request a password reset, no further action is required.');
     }
 }
