@@ -25,11 +25,12 @@ class AdminTest extends TestCase
     private function createUser(): User
     {
         return User::create([
-            'email'        => 'user@test.com',
-            'email_hash'   => hash('sha256', 'user@test.com'),
-            'password'     => 'password123',
-            'role'         => 'user',
-            'is_anonymous' => false,
+            'email'             => 'user@test.com',
+            'email_hash'        => hash('sha256', 'user@test.com'),
+            'password'          => 'password123',
+            'role'              => 'user',
+            'is_anonymous'      => false,
+            'email_verified_at' => now(),
         ]);
     }
 

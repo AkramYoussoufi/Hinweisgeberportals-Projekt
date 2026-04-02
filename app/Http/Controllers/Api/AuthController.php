@@ -25,15 +25,10 @@ class AuthController extends Controller
             'is_anonymous' => false,
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user->sendEmailVerificationNotification();
 
         return response()->json([
-            'message' => 'Registration successful',
-            'token'   => $token,
-            'user'    => [
-                'id'   => $user->id,
-                'role' => $user->role,
-            ],
+            'message' => 'Registration successful. Please verify your email before logging in.',
         ], 201);
     }
 
@@ -50,6 +45,12 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Invalid credentials',
             ], 401);
+        }
+
+        if ($user->role === 'user' && !$user->is_anonymous && !$user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Please verify your email address before logging in.',
+            ], 403);
         }
 
         $user->update(['last_active_at' => now()]);

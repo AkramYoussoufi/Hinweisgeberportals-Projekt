@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AttachmentController;
 use App\Http\Controllers\Api\SuperAdminController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -53,3 +54,28 @@ Route::prefix('superadmin')->middleware(['auth:sanctum', 'superadmin'])->group(f
     Route::patch('/admins/{adminId}/password',               [SuperAdminController::class, 'changeAdminPassword']);
     Route::get('/reports/{referenceNumber}/unlock-identity', [SuperAdminController::class, 'unlockIdentity']);
 });
+
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+
+// EMAIL VERIFICATION PART INTERNAL IMPLEMENTATION
+
+Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    $user = \App\Models\User::findOrFail($id);
+
+    if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        return response()->json(['message' => 'Invalid verification link.'], 403);
+    }
+
+    if ($user->hasVerifiedEmail()) {
+        return response()->json(['message' => 'Email already verified.'], 200);
+    }
+
+    $user->markEmailAsVerified();
+
+    return response()->json(['message' => 'Email verified successfully. You can now log in.'], 200);
+})->middleware('signed')->name('verification.verify');
+
+Route::post('/email/resend', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return response()->json(['message' => 'Verification email sent']);
+})->middleware(['auth:sanctum', 'throttle:6,1']);

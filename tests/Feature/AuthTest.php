@@ -20,10 +20,8 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-            ->assertJsonStructure([
-                'message',
-                'token',
-                'user' => ['id', 'role'],
+            ->assertJson([
+                'message' => 'Registration successful. Please verify your email before logging in.',
             ]);
 
         $this->assertDatabaseHas('users', [
@@ -59,11 +57,12 @@ class AuthTest extends TestCase
     public function test_user_can_login(): void
     {
         $user = User::create([
-            'email'        => 'test@example.com',
-            'email_hash'   => hash('sha256', 'test@example.com'),
-            'password'     => 'password123',
-            'role'         => 'user',
-            'is_anonymous' => false,
+            'email'             => 'test@example.com',
+            'email_hash'        => hash('sha256', 'test@example.com'),
+            'password'          => 'password123',
+            'role'              => 'user',
+            'is_anonymous'      => false,
+            'email_verified_at' => now(),
         ]);
 
         $response = $this->postJson('/api/auth/login', [
