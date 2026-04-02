@@ -73,16 +73,13 @@ class ReportController extends Controller
         }
 
         if ($isAnonymous) {
-            $sanctumToken = $user->createToken('auth_token')->plainTextToken;
-
             return response()->json([
                 'message'          => 'Report submitted successfully',
                 'reference_number' => $report->reference_number,
                 'anonymous_access' => [
-                    'token'      => $anonymousData['token'],
-                    'pin'        => $anonymousData['pin'],
-                    'auth_token' => $sanctumToken,
-                    'warning'    => 'Save these credentials. They will never be shown again.',
+                    'token' => $anonymousData['token'],
+                    'pin'   => $anonymousData['pin'],
+                    'warning' => 'Save these credentials. They will never be shown again.',
                 ],
             ], 201);
         }
@@ -97,18 +94,13 @@ class ReportController extends Controller
     {
         if (!$token) return false;
 
-        try {
-            $response = Http::timeout(10)->asForm()->post('https://hcaptcha.com/siteverify', [
-                'secret'   => env('HCAPTCHA_SECRET'),
-                'response' => $token,
-                'remoteip' => $ip,
-            ]);
+        $response = Http::asForm()->post('https://hcaptcha.com/siteverify', [
+            'secret'   => env('HCAPTCHA_SECRET'),
+            'response' => $token,
+            'remoteip' => $ip,
+        ]);
 
-            return $response->json('success') === true;
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('hCaptcha verification failed: ' . $e->getMessage());
-            return false;
-        }
+        return $response->json('success') === true;
     }
 
     public function index(Request $request)
