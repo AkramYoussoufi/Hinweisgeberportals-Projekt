@@ -39,14 +39,14 @@ class ReportService
         ];
     }
 
-    public function logAction(string $reportId, string $actorId, string $action, ?array $oldValue = null, ?array $newValue = null, ?string $ip = null): void
+    public function logAction(string|null $reportId, string $actorId, string $action, ?array $oldValue = null, ?array $newValue = null, ?string $ip = null): void
     {
         AuditLog::create([
-            'report_id' => $reportId,
-            'actor_id'  => $actorId,
-            'action'    => $action,
-            'old_value' => $oldValue,
-            'new_value' => $newValue,
+            'report_id'  => $reportId,
+            'actor_id'   => $actorId,
+            'action'     => $action,
+            'old_value'  => $oldValue,
+            'new_value'  => $newValue,
             'ip_address' => $ip,
         ]);
     }
