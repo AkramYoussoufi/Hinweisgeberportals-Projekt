@@ -73,13 +73,16 @@ class ReportController extends Controller
         }
 
         if ($isAnonymous) {
+            $sanctumToken = $user->createToken('auth_token')->plainTextToken;
+
             return response()->json([
                 'message'          => 'Report submitted successfully',
                 'reference_number' => $report->reference_number,
                 'anonymous_access' => [
-                    'token' => $anonymousData['token'],
-                    'pin'   => $anonymousData['pin'],
-                    'warning' => 'Save these credentials. They will never be shown again.',
+                    'token'      => $anonymousData['token'],
+                    'pin'        => $anonymousData['pin'],
+                    'auth_token' => $sanctumToken,
+                    'warning'    => 'Save these credentials. They will never be shown again.',
                 ],
             ], 201);
         }
