@@ -380,7 +380,6 @@ Läuft täglich. Fragt alle offenen (nicht abgeschlossenen) Meldungen ab, die un
 - PHP 8.2+
 - Composer
 - MySQL 8+ oder PostgreSQL 14+
-- Node.js + npm (für Vite-Asset-Bündelung)
 
 #### Schritte
 
@@ -403,11 +402,7 @@ php artisan key:generate
 php artisan migrate
 php artisan db:seed --class=SuperAdminSeeder
 
-# 6. Node-Abhängigkeiten installieren und Assets bauen
-npm install
-npm run build
-
-# 7. Entwicklungsserver starten
+# 6. Entwicklungsserver starten
 php artisan serve
 ```
 
@@ -853,7 +848,6 @@ Scheduled to run daily. Queries all open (non-closed) reports that have unread m
 - PHP 8.2+
 - Composer
 - MySQL 8+ or PostgreSQL 14+
-- Node.js + npm (for Vite asset bundling)
 
 #### Steps
 
@@ -876,11 +870,7 @@ php artisan key:generate
 php artisan migrate
 php artisan db:seed --class=SuperAdminSeeder
 
-# 6. Install Node dependencies and build assets
-npm install
-npm run build
-
-# 7. Start the development server
+# 6. Start the development server
 php artisan serve
 ```
 
