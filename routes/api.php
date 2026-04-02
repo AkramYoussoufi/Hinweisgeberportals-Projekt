@@ -48,5 +48,8 @@ Route::prefix('superadmin')->middleware(['auth:sanctum', 'superadmin'])->group(f
     Route::get('/admins',                                    [SuperAdminController::class, 'listAdmins']);
     Route::post('/admins',                                   [SuperAdminController::class, 'createAdmin']);
     Route::patch('/admins/{adminId}/deactivate',             [SuperAdminController::class, 'deactivateAdmin']);
+    Route::patch('/admins/{adminId}/reactivate',             [SuperAdminController::class, 'reactivateAdmin']);
+    Route::delete('/admins/{adminId}',                       [SuperAdminController::class, 'deleteAdmin']);
+    Route::patch('/admins/{adminId}/password',               [SuperAdminController::class, 'changeAdminPassword']);
     Route::get('/reports/{referenceNumber}/unlock-identity', [SuperAdminController::class, 'unlockIdentity']);
 });
