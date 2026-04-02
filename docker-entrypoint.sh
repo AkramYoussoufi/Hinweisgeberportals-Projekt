@@ -8,8 +8,8 @@ done
 echo "Database ready"
 
 php artisan migrate --force
+php artisan db:seed --class=PortalSettingsSeeder --force
 php artisan config:cache
 php artisan route:cache
-
 
 apache2-foreground
