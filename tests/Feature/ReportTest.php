@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class ReportTest extends TestCase
@@ -67,7 +68,11 @@ class ReportTest extends TestCase
 
     public function test_anonymous_user_can_submit_report(): void
     {
-        $response = $this->postJson('/api/reports', $this->validReportData());
+        Http::fake(['hcaptcha.com/*' => Http::response(['success' => true], 200)]);
+
+        $response = $this->postJson('/api/reports', array_merge($this->validReportData(), [
+            'hcaptcha_token' => 'valid-token',
+        ]));
 
         $response->assertStatus(201)
             ->assertJsonStructure([
@@ -184,7 +189,11 @@ class ReportTest extends TestCase
 
     public function test_audit_log_is_created_on_report_submission(): void
     {
-        $response = $this->postJson('/api/reports', $this->validReportData());
+        Http::fake(['hcaptcha.com/*' => Http::response(['success' => true], 200)]);
+
+        $response = $this->postJson('/api/reports', array_merge($this->validReportData(), [
+            'hcaptcha_token' => 'valid-token',
+        ]));
 
         $response->assertStatus(201);
 

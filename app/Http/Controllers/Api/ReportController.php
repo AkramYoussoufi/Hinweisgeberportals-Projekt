@@ -92,7 +92,6 @@ class ReportController extends Controller
 
     private function verifyHcaptcha(?string $token, string $ip): bool
     {
-        if (app()->environment('testing')) return true;
         if (!$token) return false;
 
         $response = Http::asForm()->post('https://hcaptcha.com/siteverify', [
