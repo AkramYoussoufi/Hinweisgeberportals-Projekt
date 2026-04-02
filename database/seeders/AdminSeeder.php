@@ -4,25 +4,24 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
-            'email'        => 'admin@hinweisgeberporal.de',
-            'email_hash'   => hash('sha256', 'admin@hinweisgeberporal.de'),
-            'password'     => 'admin123456',
-            'role'         => 'admin',
-            'is_anonymous' => false,
-        ]);
+        $email = env('SUPERADMIN_EMAIL', 'superadmin@hinweisgeberporal.de');
+        $password = env('SUPERADMIN_PASSWORD', 'superadmin123456');
 
-        User::create([
-            'email'        => 'superadmin@hinweisgeberporal.de',
-            'email_hash'   => hash('sha256', 'superadmin@hinweisgeberporal.de'),
-            'password'     => 'superadmin123456',
-            'role'         => 'superadmin',
-            'is_anonymous' => false,
-        ]);
+        User::updateOrCreate(
+            ['email' => $email],
+            [
+                'email_hash'        => hash('sha256', $email),
+                'password'          => Hash::make($password),
+                'role'              => 'superadmin',
+                'is_anonymous'      => false,
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }
