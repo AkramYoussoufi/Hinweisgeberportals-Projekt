@@ -1,15 +1,16 @@
 #!/bin/bash
 set -e
 
-echo "Waiting for database..."
-until php artisan migrate:status > /dev/null 2>&1; do
-  sleep 3
-done
-echo "Database ready"
+# Run migrations in background after a short delay
+(
+  sleep 10
+  echo "Running migrations..."
+  php artisan migrate --force
+  php artisan config:cache
+  php artisan route:cache
+  echo "Done."
+) &
 
-php artisan migrate --force
-php artisan db:seed --class=PortalSettingsSeeder --force
-php artisan config:cache
-php artisan route:cache
-
+# Start Apache immediately so the port opens
+echo "Starting Apache..."
 apache2-foreground
