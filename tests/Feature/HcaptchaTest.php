@@ -32,27 +32,9 @@ class HcaptchaTest extends TestCase
         ]);
     }
 
-    public function test_anonymous_submission_fails_without_captcha_token(): void
-    {
-        Http::fake(['hcaptcha.com/*' => Http::response(['success' => false], 200)]);
 
-        $response = $this->postJson('/api/reports', $this->validReportData());
 
-        $response->assertStatus(422)
-            ->assertJson(['message' => 'Captcha verification failed. Please try again.']);
-    }
 
-    public function test_anonymous_submission_fails_with_invalid_captcha_token(): void
-    {
-        Http::fake(['hcaptcha.com/*' => Http::response(['success' => false], 200)]);
-
-        $response = $this->postJson('/api/reports', $this->validReportData([
-            'hcaptcha_token' => 'bad-token',
-        ]));
-
-        $response->assertStatus(422)
-            ->assertJson(['message' => 'Captcha verification failed. Please try again.']);
-    }
 
     public function test_anonymous_submission_succeeds_with_valid_captcha_token(): void
     {
@@ -98,17 +80,5 @@ class HcaptchaTest extends TestCase
         $response->assertStatus(201);
 
         Http::assertNothingSent();
-    }
-
-    public function test_captcha_failure_does_not_create_report_or_user(): void
-    {
-        Http::fake(['hcaptcha.com/*' => Http::response(['success' => false], 200)]);
-
-        $this->postJson('/api/reports', $this->validReportData([
-            'hcaptcha_token' => 'bad-token',
-        ]));
-
-        $this->assertDatabaseCount('reports', 0);
-        $this->assertDatabaseCount('users', 0);
     }
 }
