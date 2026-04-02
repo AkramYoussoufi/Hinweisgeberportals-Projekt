@@ -97,13 +97,18 @@ class ReportController extends Controller
     {
         if (!$token) return false;
 
-        $response = Http::asForm()->post('https://hcaptcha.com/siteverify', [
-            'secret'   => env('HCAPTCHA_SECRET'),
-            'response' => $token,
-            'remoteip' => $ip,
-        ]);
+        try {
+            $response = Http::timeout(10)->asForm()->post('https://hcaptcha.com/siteverify', [
+                'secret'   => env('HCAPTCHA_SECRET'),
+                'response' => $token,
+                'remoteip' => $ip,
+            ]);
 
-        return $response->json('success') === true;
+            return $response->json('success') === true;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('hCaptcha verification failed: ' . $e->getMessage());
+            return false;
+        }
     }
 
     public function index(Request $request)
