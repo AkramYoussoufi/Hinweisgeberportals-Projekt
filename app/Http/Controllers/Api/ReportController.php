@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use App\Notifications\NewReportNotification;
 use Illuminate\Support\Facades\Notification;
 
@@ -34,6 +35,9 @@ class ReportController extends Controller
         $anonymousData = null;
 
         if ($isAnonymous) {
+            if (!$this->verifyHcaptcha($request->input('hcaptcha_token'), $request->ip())) {
+                return response()->json(['message' => 'Captcha verification failed. Please try again.'], 422);
+            }
             $anonymousData = $this->reportService->createAnonymousUser();
             $user          = $anonymousData['user'];
         }
@@ -84,6 +88,20 @@ class ReportController extends Controller
             'message'          => 'Report submitted successfully',
             'reference_number' => $report->reference_number,
         ], 201);
+    }
+
+    private function verifyHcaptcha(?string $token, string $ip): bool
+    {
+        if (app()->environment('testing')) return true;
+        if (!$token) return false;
+
+        $response = Http::asForm()->post('https://hcaptcha.com/siteverify', [
+            'secret'   => env('HCAPTCHA_SECRET'),
+            'response' => $token,
+            'remoteip' => $ip,
+        ]);
+
+        return $response->json('success') === true;
     }
 
     public function index(Request $request)

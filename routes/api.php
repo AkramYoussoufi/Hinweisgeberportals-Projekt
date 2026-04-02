@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AttachmentController;
 use App\Http\Controllers\Api\SuperAdminController;
+use App\Http\Controllers\Api\SuperAdminSettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,7 +24,7 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::prefix('reports')->middleware('auth:sanctum')->group(function () {
-    Route::post('/',                                         [ReportController::class, 'store'])->withoutMiddleware('auth:sanctum');
+    Route::post('/',                                         [ReportController::class, 'store'])->withoutMiddleware('auth:sanctum')->middleware('throttle:report-submission');
     Route::get('/',                                          [ReportController::class, 'index']);
     Route::get('/{referenceNumber}',                         [ReportController::class, 'show']);
     Route::get('/{referenceNumber}/messages',                [MessageController::class, 'index']);
@@ -53,6 +54,8 @@ Route::prefix('superadmin')->middleware(['auth:sanctum', 'superadmin'])->group(f
     Route::delete('/admins/{adminId}',                       [SuperAdminController::class, 'deleteAdmin']);
     Route::patch('/admins/{adminId}/password',               [SuperAdminController::class, 'changeAdminPassword']);
     Route::get('/reports/{referenceNumber}/unlock-identity', [SuperAdminController::class, 'unlockIdentity']);
+    Route::get('/settings',  [SuperAdminSettingsController::class, 'index']);
+    Route::patch('/settings', [SuperAdminSettingsController::class, 'update']);
 });
 
 use Illuminate\Foundation\Auth\EmailVerificationRequest;

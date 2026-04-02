@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Attachment;
 use App\Models\Report;
+use App\Services\PortalSettings;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -36,11 +37,14 @@ class AttachmentController extends Controller
 
     public function store(Request $request, string $referenceNumber)
     {
+        $maxFileMb   = PortalSettings::getInt('max_file_size_mb');
+        $maxWeeklyMb = PortalSettings::getInt('max_upload_per_week_mb');
+
         $request->validate([
             'file' => [
                 'required',
                 'file',
-                'max:51200',
+                'max:' . ($maxFileMb * 1024),
                 function ($attribute, $value, $fail) {
                     if (!in_array($value->getMimeType(), $this->allowedMimeTypes)) {
                         $fail('File type not allowed.');
@@ -59,7 +63,19 @@ class AttachmentController extends Controller
             ], 404);
         }
 
-        $file             = $request->file('file');
+        $file = $request->file('file');
+
+        $weeklyUsedBytes = Attachment::whereHas('report', function ($q) use ($request) {
+            $q->where('user_id', $request->user()->id);
+        })->where('created_at', '>=', now()->subDays(7))->sum('size');
+
+        if (($weeklyUsedBytes + $file->getSize()) > $maxWeeklyMb * 1024 * 1024) {
+            return response()->json([
+                'message' => "You have exceeded your {$maxWeeklyMb}MB weekly upload limit.",
+            ], 422);
+        }
+
+
         $originalFilename = $file->getClientOriginalName();
         $storedFilename   = Str::uuid() . '.' . $file->getClientOriginalExtension();
         $mimeType         = $file->getMimeType();
