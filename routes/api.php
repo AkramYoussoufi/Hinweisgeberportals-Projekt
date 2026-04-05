@@ -60,7 +60,6 @@ Route::prefix('superadmin')->middleware(['auth:sanctum', 'superadmin'])->group(f
 
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
-// EMAIL VERIFICATION PART INTERNAL IMPLEMENTATION
 
 Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
     $frontendUrl = rtrim(env('FRONTEND_URL', config('app.url')), '/');

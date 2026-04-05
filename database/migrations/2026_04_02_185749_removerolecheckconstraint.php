@@ -10,10 +10,8 @@ class RemoveRoleCheckConstraint extends Migration
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'pgsql') {
-            // PostgreSQL - drop the constraint
             DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check');
         } elseif ($driver === 'mysql') {
-            // MySQL - remove ENUM back to string if needed
             DB::statement('ALTER TABLE users MODIFY COLUMN role VARCHAR(255) NOT NULL DEFAULT "user"');
         }
     }

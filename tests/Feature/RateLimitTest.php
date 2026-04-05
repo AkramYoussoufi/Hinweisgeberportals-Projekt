@@ -15,7 +15,6 @@ class RateLimitTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Clear the rate-limit counters between tests (array cache persists within a process)
         Cache::flush();
     }
 
@@ -85,14 +84,10 @@ class RateLimitTest extends TestCase
 
     public function test_reduced_limit_takes_effect_immediately(): void
     {
-        // Start with a generous limit, then tighten it
         PortalSetting::where('key', 'max_reports_per_hour_per_ip')->update(['value' => '5']);
 
         $user = $this->createVerifiedUser();
         $this->submitAsUser($user)->assertStatus(201);
-
-        // Tighten to 1 — the rate limiter re-reads the DB on every request,
-        // but the counter already has 1 hit, so the next request should be blocked
         PortalSetting::where('key', 'max_reports_per_hour_per_ip')->update(['value' => '1']);
 
         $this->submitAsUser($user)->assertStatus(429);

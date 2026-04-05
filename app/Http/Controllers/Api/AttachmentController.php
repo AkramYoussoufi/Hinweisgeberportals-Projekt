@@ -81,11 +81,17 @@ class AttachmentController extends Controller
         $mimeType         = $file->getMimeType();
         $size             = $file->getSize();
 
-        Storage::disk('local')->putFileAs(
+        $stored = Storage::disk('local')->putFileAs(
             'attachments/' . $report->id,
             $file,
             $storedFilename
         );
+
+        if ($stored === false) {
+            return response()->json([
+                'message' => 'Failed to store the file. Please try again.',
+            ], 500);
+        }
 
         $attachment = Attachment::create([
             'report_id'         => $report->id,

@@ -33,7 +33,6 @@ class PortalSettingsTest extends TestCase
         ]);
     }
 
-    // ── GET /superadmin/settings ──────────────────────────────────────────────
 
     public function test_superadmin_can_read_settings(): void
     {
@@ -82,7 +81,6 @@ class PortalSettingsTest extends TestCase
             ->assertStatus(401);
     }
 
-    // ── PATCH /superadmin/settings ────────────────────────────────────────────
 
     public function test_superadmin_can_update_settings(): void
     {
@@ -138,7 +136,6 @@ class PortalSettingsTest extends TestCase
             ->assertStatus(403);
     }
 
-    // ── Validation ────────────────────────────────────────────────────────────
 
     public function test_update_rejects_zero_values(): void
     {
@@ -199,14 +196,12 @@ class PortalSettingsTest extends TestCase
         $token = $this->createSuperAdmin()->createToken('t')->plainTextToken;
         $auth  = ['Authorization' => 'Bearer ' . $token];
 
-        // First update
         $this->withHeaders($auth)->patchJson('/api/superadmin/settings', [
             'max_reports_per_hour_per_ip' => 8,
             'max_file_size_mb'            => 15,
             'max_upload_per_week_mb'      => 60,
         ]);
 
-        // Second update changes only one value
         $this->withHeaders($auth)->patchJson('/api/superadmin/settings', [
             'max_reports_per_hour_per_ip' => 12,
             'max_file_size_mb'            => 15,
